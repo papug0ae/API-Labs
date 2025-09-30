@@ -20,7 +20,7 @@
         }
 
         header {
-            background: linear-gradient(135deg, #3f51b5, #1a237e);
+            background: linear-gradient(135deg, #6F119E, #5E1085);
             color: #fff;
             padding: 2rem 1rem 1.5rem;
             text-align: center;
@@ -80,7 +80,7 @@
 
         button[type="submit"] {
             padding: 0.75rem 1.75rem;
-            background-color: #3f51b5;
+            background-color: #6F119E;
             color: #fff;
             border: none;
             border-radius: 10px;
@@ -95,7 +95,7 @@
         }
 
         button[type="submit"]:disabled {
-            background-color: #9fa8da;
+            background-color: #A11BE4;
             cursor: not-allowed;
             box-shadow: none;
         }
@@ -120,7 +120,7 @@
         .card h3 {
             margin: 0;
             font-size: 1.05rem;
-            color: #1a237e;
+            color: #A11BE4;
         }
 
         .card dl {
@@ -138,7 +138,7 @@
 
         .card dd {
             margin: 0;
-            color: #212121;
+            color: #BAAE1A;
         }
 
         .status-message {
@@ -246,13 +246,19 @@
             const author = (book.author_name && book.author_name.length)
                 ? book.author_name.join(', ')
                 : 'Неизвестен';
+
+            const rawSubjects = book.subject ? book.subject.slice(0, 5).join(', ') : '—';
+            const maxSubjectLength = 100;
+            const subjectText = rawSubjects !== '—' && rawSubjects.length > maxSubjectLength
+                ? rawSubjects.slice(0, maxSubjectLength - 3).trimEnd() + '...'
+                : rawSubjects;
+
             list.innerHTML = `
                 <dt>Автор</dt><dd>${author}</dd>
                 <dt>Первое издание</dt><dd>${book.first_publish_year ?? '—'}</dd>
-                <dt>Темы</dt><dd>${book.subject ? book.subject.slice(0, 5).join(', ') : '—'}</dd>
+                <dt>Темы</dt><dd>${subjectText}</dd>
                 <dt>ISBN</dt><dd>${book.isbn ? book.isbn.slice(0, 3).join(', ') : '—'}</dd>
             `;
-
             card.appendChild(list);
             return card;
         }
