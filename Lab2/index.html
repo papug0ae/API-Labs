@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NASA Media Explorer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>NASA Media Explorer</h1>
+    <p>Ищите изображения и видео NASA по ключевым словам.</p>
+  </header>
+  <main class="page-content">
+    <form id="search-form" class="search-form" autocomplete="off">
+      <label class="field" for="search-input">
+        <span class="field-label">Ключевое слово</span>
+        <input type="text" id="search-input" name="query" placeholder="Например, Mars или Apollo" required>
+      </label>
+      <label class="field" for="media-type">
+        <span class="field-label">Тип медиа</span>
+        <select id="media-type" name="media-type">
+          <option value="all" selected>Все</option>
+          <option value="image">Изображения</option>
+          <option value="video">Видео</option>
+        </select>
+      </label>
+      <label class="field" for="year">
+        <span class="field-label">Год (необязательно)</span>
+        <input type="number" id="year" name="year" min="1920" max="2100" placeholder="Например, 2020">
+      </label>
+      <button type="submit" class="search-button">Искать</button>
+    </form>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <section id="results" class="gallery" aria-live="polite"></section>
+  </main>
+  <footer class="page-footer">
+    <small>Источник данных: NASA Image and Video Library API</small>
+  </footer>
+  <script src="script.js" defer></script>
+</body>
+</html>
