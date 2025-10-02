@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Анализ текста — Lab4</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>Интерактивный анализ текста</h1>
+    <p class="subtitle">Использует MeaningCloud Text Analysis API (требуется собственный API ключ)</p>
+  </header>
+
+  <main class="layout">
+    <section class="card">
+      <h2>Входные данные</h2>
+      <form id="analysis-form" class="form">
+        <label class="form__label" for="apiKey">API ключ MeaningCloud</label>
+        <input class="form__input" type="password" id="apiKey" name="apiKey" placeholder="Введите ваш ключ" required />
+
+        <label class="form__label" for="language">Язык текста</label>
+        <select class="form__input" id="language" name="language">
+          <option value="ru">Русский</option>
+          <option value="en">Английский</option>
+          <option value="es">Испанский</option>
+          <option value="fr">Французский</option>
+          <option value="it">Итальянский</option>
+        </select>
+
+        <label class="form__label" for="text">Текст для анализа</label>
+        <textarea class="form__textarea" id="text" name="text" rows="8" placeholder="Вставьте новость или заметку" required></textarea>
+
+        <div class="form__actions">
+          <button type="submit" id="analyzeBtn" class="btn btn--primary">Анализировать</button>
+          <button type="reset" class="btn btn--secondary">Очистить</button>
+        </div>
+        <p class="hint">Нет ключа? Зарегистрируйтесь на <a href="https://www.meaningcloud.com/developer/login" target="_blank" rel="noopener">MeaningCloud</a> и создайте новый API key.</p>
+      </form>
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>Общая тональность</h2>
+      <div class="sentiment-summary">
+        <p><strong>Оценка:</strong> <span id="sentimentScore">—</span></p>
+        <p><strong>Уверенность API:</strong> <span id="sentimentConfidence">—</span></p>
+        <p><strong>Субъективность:</strong> <span id="subjectivity">—</span></p>
+        <p><strong>Ирония:</strong> <span id="irony">—</span></p>
+      </div>
+      <canvas id="sentimentChart" width="400" height="260" aria-label="Диаграмма тональности" role="img"></canvas>
+    </section>
+
+    <section class="card">
+      <h2>Ключевые слова</h2>
+      <div class="table-wrapper">
+        <table id="keywordsTable">
+          <thead>
+            <tr>
+              <th>Ключевая фраза</th>
+              <th>Источник</th>
+              <th>Релевантность</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="3" class="placeholder">Результаты появятся после анализа</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <canvas id="keywordsChart" width="400" height="260" aria-label="Релевантность ключевых слов" role="img"></canvas>
+    </section>
+
+    <section class="card">
+      <h2>Статистика текста</h2>
+      <div class="table-wrapper">
+        <table id="statsTable">
+          <tbody>
+            <tr><th>Количество символов</th><td id="charCount">—</td></tr>
+            <tr><th>Количество символов (без пробелов)</th><td id="charCountNoSpaces">—</td></tr>
+            <tr><th>Количество слов</th><td id="wordCount">—</td></tr>
+            <tr><th>Количество предложений</th><td id="sentenceCount">—</td></tr>
+            <tr><th>Средняя длина слова</th><td id="avgWordLength">—</td></tr>
+            <tr><th>Оценка времени чтения</th><td id="readingTime">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>В лабораторной работе используется MeaningCloud Text Analysis API и библиотека Chart.js.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
