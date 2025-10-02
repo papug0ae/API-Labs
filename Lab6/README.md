@@ -1,25 +1,33 @@
-# Lab 6 Scaffold
+# Lab 6 Implementation
 
-Основа для дальнейшей реализации задания по парсингу курсов валют ЦБ РФ.
+Currency rate scraper for the Central Bank of Russia that stores data to CSV and renders a line chart.
 
-## Что уже сделано
-- Получение XML с ежедневными курсами с сайта ЦБ РФ.
-- Извлечение курса выбранной валюты (по умолчанию USD).
-- Сбор серии снимков за несколько дней.
-- Подготовлены директории `data/` и `plots/` для дальнейшего сохранения результатов.
+## Features
+- fetches daily rates from the CBR `XML_daily.asp` endpoint;
+- extracts the desired currency (USD by default) while respecting the published nominal;
+- collects a multi-day time series and prints a console preview;
+- writes the results to `data/currency_rates.csv` and saves the chart to `plots/currency_rates.png`;
+- provides an interactive CLI and optional command-line arguments.
 
-## Что осталось реализовать
-1. В функции `export_to_csv` собрать DataFrame из списка `RateSnapshot` и сохранить в `CSV_OUTPUT` с помощью pandas.
-2. В функции `plot_rates` построить линейный график (ось X — даты, ось Y — курс) и сохранить в `PLOT_OUTPUT`.
-3. После завершения пунктов 1 и 2, раскомментировать соответствующие вызовы в блоке `if __name__ == "__main__":`.
-4. При необходимости изменить настройки (валюта, период) в константах или параметрах.
-
-## Запуск
-```bash
-python main.py
-```
-
-Перед запуском установите зависимости:
+## Setup
 ```bash
 pip install -r requirements.txt
 ```
+
+## Usage
+### Interactive mode (default)
+```bash
+python main.py
+```
+Answer the prompts to change currency, day count, or start date. Press Enter to keep defaults or type `q` to exit.
+
+### Non-interactive run
+```bash
+python main.py --no-prompt [--currency EUR] [--days 10] [--start-date 2025-09-01]
+```
+Arguments:
+- `--currency` - three-letter ISO code;
+- `--days` - number of days (1-31);
+- `--start-date` - starting date in `YYYY-MM-DD` format.
+
+After the run the script updates both CSV and PNG files and prints their locations.
