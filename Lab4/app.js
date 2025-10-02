@@ -4,8 +4,8 @@
   const messageEl = document.getElementById('message');
   const sentimentScoreEl = document.getElementById('sentimentScore');
   const sentimentConfidenceEl = document.getElementById('sentimentConfidence');
-  const subjectivityEl = document.getElementById('subjectivity');
-  const ironyEl = document.getElementById('irony');
+  const positiveRatioEl = document.getElementById('positiveRatio');
+  const negativeRatioEl = document.getElementById('negativeRatio');
   const keywordsTableBody = document.querySelector('#keywordsTable tbody');
   const statsCells = {
     charCount: document.getElementById('charCount'),
@@ -16,6 +16,11 @@
     readingTime: document.getElementById('readingTime')
   };
 
+  const RAPIDAPI_HOSTS = {
+    sentiment: 'twinword-sentiment-analysis.p.rapidapi.com',
+    keywords: 'twinword-keyword-extractor.p.rapidapi.com'
+  };
+
   let sentimentChart;
   let keywordsChart;
 
@@ -23,7 +28,6 @@
     event.preventDefault();
 
     const apiKey = form.apiKey.value.trim();
-    const language = form.language.value;
     const text = form.text.value.trim();
 
     if (!text) {
@@ -32,7 +36,7 @@
     }
 
     if (!apiKey) {
-      showMessage('Укажите ключ MeaningCloud, чтобы выполнить запрос.', true);
+      showMessage('Укажите RapidAPI ключ, чтобы выполнить запрос.', true);
       return;
     }
 
@@ -40,13 +44,13 @@
     showMessage('Выполняется анализ текста…');
 
     try {
-      const [sentimentData, topicsData] = await Promise.all([
-        fetchSentiment({ apiKey, language, text }),
-        fetchTopics({ apiKey, language, text })
+      const [sentimentData, keywordData] = await Promise.all([
+        fetchSentiment({ apiKey, text }),
+        fetchKeywords({ apiKey, text })
       ]);
 
       renderSentiment(sentimentData);
-      renderKeywords(topicsData);
+      renderKeywords(keywordData);
       renderStats(text);
       showMessage('Анализ завершён успешно.');
     } catch (error) {
@@ -61,8 +65,8 @@
     showMessage('');
     sentimentScoreEl.textContent = '—';
     sentimentConfidenceEl.textContent = '—';
-    subjectivityEl.textContent = '—';
-    ironyEl.textContent = '—';
+    positiveRatioEl.textContent = '—';
+    negativeRatioEl.textContent = '—';
     keywordsTableBody.innerHTML = '<tr><td colspan="3" class="placeholder">Результаты появятся после анализа</td></tr>';
     Object.values(statsCells).forEach((cell) => {
       cell.textContent = '—';
@@ -89,75 +93,73 @@
     messageEl.classList.toggle('message--error', Boolean(isError));
   }
 
-  async function fetchSentiment({ apiKey, language, text }) {
-    const params = new URLSearchParams({
-      key: apiKey,
-      lang: language,
-      txt: text,
-      model: 'general'
-    });
+  async function fetchSentiment({ apiKey, text }) {
+    const body = new URLSearchParams({ text });
 
-    const response = await fetch('https://api.meaningcloud.com/sentiment-2.1', {
+    const response = await fetch(`https://${RAPIDAPI_HOSTS.sentiment}/analyze/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': RAPIDAPI_HOSTS.sentiment
+      },
+      body: body.toString()
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.status?.msg || `Ошибка запроса: ${response.status}`);
+      throw new Error(data.message || `Ошибка запроса: ${response.status}`);
     }
 
-    if (data.status?.code && data.status.code !== '0') {
-      throw new Error(data.status.msg || 'API MeaningCloud вернуло ошибку.');
+    if (data.result_code && data.result_code !== '200') {
+      throw new Error(data.result_msg || 'Twinword вернуло ошибку анализа тональности.');
     }
 
     return data;
   }
 
-  async function fetchTopics({ apiKey, language, text }) {
-    const params = new URLSearchParams({
-      key: apiKey,
-      lang: language,
-      txt: text,
-      tt: 'a',
-      max: '20'
-    });
+  async function fetchKeywords({ apiKey, text }) {
+    const body = new URLSearchParams({ text });
 
-    const response = await fetch('https://api.meaningcloud.com/topics-2.0', {
+    const response = await fetch(`https://${RAPIDAPI_HOSTS.keywords}/extract/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': RAPIDAPI_HOSTS.keywords
+      },
+      body: body.toString()
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.status?.msg || `Ошибка запроса: ${response.status}`);
+      throw new Error(data.message || `Ошибка запроса: ${response.status}`);
     }
 
-    if (data.status?.code && data.status.code !== '0') {
-      throw new Error(data.status.msg || 'Не удалось извлечь ключевые слова.');
+    if (data.result_code && data.result_code !== '200') {
+      throw new Error(data.result_msg || 'Не удалось извлечь ключевые слова.');
     }
 
     return data;
   }
 
   function renderSentiment(data) {
-    const scoreTag = data.score_tag;
-    const label = mapScoreTagToLabel(scoreTag);
-    sentimentScoreEl.textContent = label;
-    sentimentConfidenceEl.textContent = formatConfidence(data.confidence);
-    subjectivityEl.textContent = mapSubjectivity(data.subjectivity);
-    ironyEl.textContent = mapIrony(data.irony);
+    const label = mapSentimentLabel(data.sentiment);
+    const scoreValue = clampScore(data.score);
 
-    const scoreValue = mapScoreTagToValue(scoreTag);
+    sentimentScoreEl.textContent = label;
+    sentimentConfidenceEl.textContent = formatConfidence(data.score);
+    positiveRatioEl.textContent = formatRatio(data.ratio?.positive);
+    negativeRatioEl.textContent = formatRatio(data.ratio?.negative);
+
+    const ctx = document.getElementById('sentimentChart').getContext('2d');
     const chartData = {
-      labels: ['Тональность текста'],
+      labels: ['Twinword score'],
       datasets: [
         {
-          label: 'Отрицательная ← нейтральная → положительная',
+          label: 'Score (-1…1)',
           data: [scoreValue],
           backgroundColor: [scoreValue >= 0 ? 'rgba(94, 234, 212, 0.7)' : 'rgba(248, 113, 113, 0.7)'],
           borderColor: [scoreValue >= 0 ? 'rgba(94, 234, 212, 1)' : 'rgba(248, 113, 113, 1)'],
@@ -166,7 +168,6 @@
       ]
     };
 
-    const ctx = document.getElementById('sentimentChart').getContext('2d');
     if (sentimentChart) {
       sentimentChart.destroy();
     }
@@ -182,26 +183,13 @@
             grid: { color: 'rgba(148, 163, 184, 0.2)' }
           },
           y: {
-            min: -2,
-            max: 2,
+            min: -1,
+            max: 1,
             ticks: {
-              stepSize: 1,
+              stepSize: 0.5,
               color: '#cbd5f5',
-              callback: (value) => {
-                switch (value) {
-                  case -2:
-                    return 'Сильно отриц.';
-                  case -1:
-                    return 'Отриц.';
-                  case 0:
-                    return 'Нейтр.';
-                  case 1:
-                    return 'Полож.';
-                  case 2:
-                    return 'Сильно полож.';
-                  default:
-                    return value;
-                }
+              callback(value) {
+                return value;
               }
             },
             grid: { color: 'rgba(148, 163, 184, 0.2)' }
@@ -214,7 +202,7 @@
           tooltip: {
             callbacks: {
               label(context) {
-                return `${context.dataset.label}: ${mapValueToDescription(context.parsed.y)}`;
+                return `Score: ${context.parsed.y}`;
               }
             }
           }
@@ -237,12 +225,12 @@
 
     keywordsTableBody.innerHTML = keywords
       .map((item) => {
-        const relevance = Number.isFinite(item.relevance) ? item.relevance.toFixed(2) : '—';
+        const weight = Number.isFinite(item.weight) ? item.weight.toFixed(3) : '—';
         return `
         <tr>
           <td>${escapeHtml(item.label)}</td>
-          <td>${escapeHtml(item.source)}</td>
-          <td>${relevance}</td>
+          <td>${item.source}</td>
+          <td>${weight}</td>
         </tr>`;
       })
       .join('');
@@ -260,8 +248,8 @@
         labels: topKeywords.map((item) => item.label),
         datasets: [
           {
-            label: 'Релевантность (0-1)',
-            data: topKeywords.map((item) => item.relevance),
+            label: 'Вес ключевого слова',
+            data: topKeywords.map((item) => item.weight),
             backgroundColor: 'rgba(99, 102, 241, 0.7)',
             borderColor: 'rgba(99, 102, 241, 1)',
             borderWidth: 1.5
@@ -273,9 +261,7 @@
         indexAxis: 'y',
         scales: {
           x: {
-            min: 0,
-            max: 1,
-            ticks: { color: '#cbd5f5', stepSize: 0.2 },
+            ticks: { color: '#cbd5f5' },
             grid: { color: 'rgba(148, 163, 184, 0.2)' }
           },
           y: {
@@ -324,89 +310,45 @@
   }
 
   function extractKeywords(data) {
-    const concepts = (data.concept_list || []).map((item) => ({
-      label: item.form,
-      source: 'Concept',
-      relevance: Number(item.relevance) || 0
-    }));
-
-    const entities = (data.entity_list || []).map((item) => ({
-      label: item.form,
-      source: item.sementity?.type || 'Entity',
-      relevance: Number(item.relevance) || 0
-    }));
-
-    return [...concepts, ...entities]
+    const keywordMap = data.keyword || {};
+    return Object.entries(keywordMap)
+      .map(([label, weight]) => ({
+        label,
+        weight: Number(weight) || 0,
+        source: 'Twinword'
+      }))
       .filter((item) => item.label)
-      .sort((a, b) => b.relevance - a.relevance);
+      .sort((a, b) => b.weight - a.weight);
   }
 
-  function mapScoreTagToLabel(scoreTag) {
+  function mapSentimentLabel(sentiment) {
     const mapping = {
-      'P+': 'Сильноположительная',
-      P: 'Положительная',
-      NEU: 'Нейтральная',
-      N: 'Отрицательная',
-      'N+': 'Сильноотрицательная',
-      NONE: 'Нет тональности'
+      positive: 'Положительная',
+      neutral: 'Нейтральная',
+      negative: 'Отрицательная'
     };
-    return mapping[scoreTag] || 'Нет данных';
+    return mapping[sentiment] || 'Нет данных';
   }
 
-  function mapScoreTagToValue(scoreTag) {
-    const mapping = {
-      'P+': 2,
-      P: 1,
-      NEU: 0,
-      N: -1,
-      'N+': -2,
-      NONE: 0
-    };
-    return mapping[scoreTag] ?? 0;
-  }
-
-  function mapValueToDescription(value) {
-    switch (value) {
-      case -2:
-        return 'Сильно отрицательная тональность';
-      case -1:
-        return 'Отрицательная тональность';
-      case 0:
-        return 'Нейтральная тональность';
-      case 1:
-        return 'Положительная тональность';
-      case 2:
-        return 'Сильноположительная тональность';
-      default:
-        return `${value}`;
+  function clampScore(score) {
+    if (typeof score !== 'number' || Number.isNaN(score)) {
+      return 0;
     }
+    return Math.max(-1, Math.min(1, score));
   }
 
-  function mapSubjectivity(subjectivity) {
-    const mapping = {
-      SUBJECTIVE: 'Субъективный текст',
-      OBJECTIVE: 'Объективный текст'
-    };
-    return mapping[subjectivity] || 'Нет данных';
-  }
-
-  function mapIrony(irony) {
-    const mapping = {
-      NONIRONIC: 'Без иронии',
-      IRONIC: 'Есть признаки иронии'
-    };
-    return mapping[irony] || 'Нет данных';
-  }
-
-  function formatConfidence(confidence) {
-    if (confidence === undefined || confidence === null) {
+  function formatConfidence(score) {
+    if (typeof score !== 'number' || Number.isNaN(score)) {
       return '—';
     }
-    const value = Number(confidence);
-    if (Number.isNaN(value)) {
+    return `${Math.round(Math.abs(score) * 100)}%`;
+  }
+
+  function formatRatio(value) {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
       return '—';
     }
-    return `${value}%`;
+    return `${(value * 100).toFixed(1)}%`;
   }
 
   function escapeHtml(text) {

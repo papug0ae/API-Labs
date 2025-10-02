@@ -10,33 +10,24 @@
 <body>
   <header class="app-header">
     <h1>Интерактивный анализ текста</h1>
-    <p class="subtitle">Использует MeaningCloud Text Analysis API (требуется собственный API ключ)</p>
+    <p class="subtitle">Использует Twinword Sentiment & Keyword Extraction API через RapidAPI</p>
   </header>
 
   <main class="layout">
     <section class="card">
       <h2>Входные данные</h2>
       <form id="analysis-form" class="form">
-        <label class="form__label" for="apiKey">API ключ MeaningCloud</label>
-        <input class="form__input" type="password" id="apiKey" name="apiKey" placeholder="Введите ваш ключ" required />
-
-        <label class="form__label" for="language">Язык текста</label>
-        <select class="form__input" id="language" name="language">
-          <option value="ru">Русский</option>
-          <option value="en">Английский</option>
-          <option value="es">Испанский</option>
-          <option value="fr">Французский</option>
-          <option value="it">Итальянский</option>
-        </select>
+        <label class="form__label" for="apiKey">API ключ RapidAPI для Twinword</label>
+        <input class="form__input" type="password" id="apiKey" name="apiKey" placeholder="Вставьте свой RapidAPI ключ" required />
 
         <label class="form__label" for="text">Текст для анализа</label>
-        <textarea class="form__textarea" id="text" name="text" rows="8" placeholder="Вставьте новость или заметку" required></textarea>
+        <textarea class="form__textarea" id="text" name="text" rows="9" placeholder="Вставьте новость или заметку на английском языке" required></textarea>
 
         <div class="form__actions">
           <button type="submit" id="analyzeBtn" class="btn btn--primary">Анализировать</button>
           <button type="reset" class="btn btn--secondary">Очистить</button>
         </div>
-        <p class="hint">Нет ключа? Зарегистрируйтесь на <a href="https://www.meaningcloud.com/developer/login" target="_blank" rel="noopener">MeaningCloud</a> и создайте новый API key.</p>
+        <p class="hint">Ключ можно получить на <a href="https://rapidapi.com/twinword/api/text-analysis/" target="_blank" rel="noopener">странице Twinword Text Analysis в RapidAPI</a>.</p>
       </form>
       <div id="message" class="message" role="status" aria-live="polite"></div>
     </section>
@@ -44,10 +35,10 @@
     <section class="card">
       <h2>Общая тональность</h2>
       <div class="sentiment-summary">
-        <p><strong>Оценка:</strong> <span id="sentimentScore">—</span></p>
-        <p><strong>Уверенность API:</strong> <span id="sentimentConfidence">—</span></p>
-        <p><strong>Субъективность:</strong> <span id="subjectivity">—</span></p>
-        <p><strong>Ирония:</strong> <span id="irony">—</span></p>
+        <p><strong>Результат:</strong> <span id="sentimentScore">—</span></p>
+        <p><strong>Уверенность (|score|):</strong> <span id="sentimentConfidence">—</span></p>
+        <p><strong>Положительные слова:</strong> <span id="positiveRatio">—</span></p>
+        <p><strong>Отрицательные слова:</strong> <span id="negativeRatio">—</span></p>
       </div>
       <canvas id="sentimentChart" width="400" height="260" aria-label="Диаграмма тональности" role="img"></canvas>
     </section>
@@ -60,7 +51,7 @@
             <tr>
               <th>Ключевая фраза</th>
               <th>Источник</th>
-              <th>Релевантность</th>
+              <th>Вес</th>
             </tr>
           </thead>
           <tbody>
@@ -91,7 +82,7 @@
   </main>
 
   <footer class="app-footer">
-    <p>В лабораторной работе используется MeaningCloud Text Analysis API и библиотека Chart.js.</p>
+    <p>В лабораторной работе используются Twinword API и библиотека Chart.js.</p>
   </footer>
 
   <script src="app.js"></script>
