@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Изменение температуры — OpenWeather</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.5/dist/chart.umd.min.js" integrity="sha384-KQHf8Nl6+7I7Sm4lyRtNZaKbAfQ/1PGtFBLv16ZlMxDVq1LoFtWTsj5GrD+kgcj0" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" integrity="sha384-+/irhPAoVRRSxT0Q0PU9SJTrqYxrBp1lAWRnottrENxT8BUEAxap327SuIO7ZAmL" crossorigin="anonymous"></script>
+</head>
+<body>
+    <main class="page">
+        <section class="panel">
+            <h1>График изменения температуры. Ключ: 5dcbf8d70836f16c58a5b74bbc5fc33d</h1>
+            <form id="controls" class="controls" autocomplete="off">
+                <label class="field">
+                    <span>API ключ</span>
+                    <input id="apiKey" name="apiKey" type="password" placeholder="Введите ключ OpenWeather" required>
+                </label>
+                <label class="field">
+                    <span>Город</span>
+                    <input id="city" name="city" type="text" placeholder="Например, Moscow" required>
+                </label>
+                <label class="field">
+                    <span>Параметр</span>
+                    <select id="metric" name="metric">
+                        <option value="temp">Температура, °C</option>
+                        <option value="feels_like">Ощущается как, °C</option>
+                        <option value="temp_min">Минимальная, °C</option>
+                        <option value="temp_max">Максимальная, °C</option>
+                    </select>
+                </label>
+                <div class="field-group">
+                    <label class="field">
+                        <span>Начало периода</span>
+                        <input id="start" name="start" type="datetime-local" required>
+                    </label>
+                    <label class="field">
+                        <span>Конец периода</span>
+                        <input id="end" name="end" type="datetime-local" required>
+                    </label>
+                </div>
+                <button id="load" type="submit">Обновить график</button>
+            </form>
+            <p id="status" role="status" class="status" aria-live="polite"></p>
+        </section>
+        <section class="chart-wrap">
+            <canvas id="temperatureChart" aria-label="График температуры" role="img"></canvas>
+        </section>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
